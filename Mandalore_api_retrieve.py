@@ -3,6 +3,7 @@
 print('Getting things set up. . .')
 
 import requests
+import json
 
 wookieurl = 'https://starwars.fandom.com/api.php'
 name_file = open('Mandalore_people_list.txt','r')
@@ -25,25 +26,23 @@ wookieparams = {
     'redirects':''
 }
 
+sw_info = {}
+
 
 for name in name_file:
-    name = name.split('\n')[0]
+    print(f"Processing {name}")
+    name = name.strip()
     wookieparams['page'] = name
     r = requests.get(wookieurl, params = wookieparams)
-    data = r.text
-    info = data.split('\\n{{')
-    for section in info:
-        try:
-            data_file.write(section)
-        except:
-            try:
-                mini = section.split('\u2015')
-                for bit in mini:
-                    data_file.write(bit)
-            except:
-                continue
-    data_file.write('~:~ '+ name)
-    data_file.write('\n')
+    data = json.loads(r.text)
+    try:
+        sw_info[name] = data['parse']['wikitext']
+    except Exception as e:
+        print(e)
+    # data_file.write('~:~ '+ name)
+    # data_file.write('\n')
+
+data_file.write(json.dumps(sw_info))
         
 
 print('Finished!')

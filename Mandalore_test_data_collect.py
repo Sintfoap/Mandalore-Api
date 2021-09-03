@@ -2,17 +2,17 @@
 
 print('Getting things set up. . .')
 
-import requests
+import json
 
 ########################
 def debracket(line, word):
     mylist = []
-    nonbar = line.split('\\n|')
+    nonbar = line.split('\n|')
     for phrase in nonbar:
         if word in phrase and word != 'result=':
             norightbar = phrase.split(']]')
             for element in norightbar:
-                noslashn = element.split('\\n')
+                noslashn = element.split('\n')
                 for bit in noslashn:
                     if ':' not in bit and '&' not in bit and '(' not in bit and '|' not in bit:
                         if '*[[' in bit:
@@ -32,7 +32,7 @@ def debracket(line, word):
                 mystring = ''
                 noref = element.split('ref')
                 goal = noref[0]
-                if len(noref) > 2 and '\\n' not in noref[2] and '=' not in noref[2] and noref[2] != '>':
+                if len(noref) > 2 and '\n' not in noref[2] and '=' not in noref[2] and noref[2] != '>':
                     goal = str(noref[0][:-1]) + str (noref[2][1:])
                 noleftbar= goal.split('[[')
                 for bit in noleftbar:
@@ -50,7 +50,7 @@ def debracket(line, word):
 ######
 def format_results(data,attributes):
     propdict={}
-    data = data.split('\\n{')
+    data = data.split('\n{')
     for attribute in attributes:
         for line in data:
             if attribute in line:
@@ -60,6 +60,8 @@ def format_results(data,attributes):
 
 wookieurl = 'https://starwars.fandom.com/api.php'
 data_file = open('Mandalore_data_list.txt', 'r')
+data_file_contents = data_file.read()
+sw_info = json.loads(data_file_contents)
 people_dict = {}
 locations_dict = {}
 organizations_dict = {}
@@ -95,11 +97,9 @@ attributes = [
     ]
 
 ### Formatting the results
-for information in data_file:
-    info = information.split('~:~')
-    data = info[0]
+for name in sw_info:
+    data = sw_info[name]
     try:
-        name = info[1][1:-1]
         formatted = format_results(data, attributes)
         if formatted != {}:
             if 'homeworld=' in formatted:

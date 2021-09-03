@@ -2,20 +2,19 @@
 
 
 import Mandalore_test_data_collect as dc
+import json
 
 ########################
-def parse_data(data_file):
+def parse_data(sw_info):
     participants_list = []
-    for information in data_file:
-        info = information.split('~:~')
-        data = info[0]
+    for name in data_file:
+        data = sw_info[name]
         participants_dict = {}
         try:
-            name = info[1][1:-1]
             for event in dc.events_dict:
                 side_dict = {}
                 if name == event:
-                    nobar = data.split('\\n|')
+                    nobar = data.split('\n|')
                     for byte in nobar:
                         for side in sides:
                             side_list = []
@@ -89,6 +88,8 @@ def debracket(phrase):
 ########################
 
 data_file = open('Mandalore_data_list.txt', 'r')
+data_file_contents = data_file.read()
+sw_info = json.loads(data_file_contents)
 commanders = ['commanders1=',
     'commanders2=',
     'commanders3=',
@@ -110,7 +111,7 @@ sides = ['1',
     '4'
     ]
 ### The Actual Program
-participants = parse_data(data_file)
+participants = parse_data(sw_info)
 
 if __name__ == '__main__':
     print(participants)

@@ -2,13 +2,17 @@
 
 from getpass import getpass
 from mysql.connector import connect, Error
+from pypika import Query, Table, Field
 import Mandalore_test_data_collect as dc
 import Mandalore_participant_finder as pf
 import Mandalore_db_builder as dbb
 
 ########################
 def add_new_location(location):
-    add_location_query = "INSERT INTO locations VALUES (DEFAULT, '" + location + "')"
+    # locations = Table('locations')
+    # query = locations.insert('DEFAULT', )
+    # print(query.get_sql())
+    add_location_query = "INSERT INTO locations VALUES (DEFAULT, '" + location.replace("'", "\\'") + "')"
     cursor.execute(add_location_query)
     connection.commit()
     print('Added a new location: '+ location)
@@ -45,6 +49,8 @@ def add_new_event(event, location, date, result):
     if location_existence == False:
         add_new_location(location)
         print('Added the location of ' + location + ' for the event '+ event)
+    print(result)
+    print(len(result))
     add_event_query = 'INSERT INTO events VALUES (DEFAULT, "' + event + '", (SELECT location_id FROM locations WHERE name = "' + location + '"), "' + date + '", "' + result + '")'
     cursor.execute(add_event_query)
     connection.commit()
@@ -203,16 +209,32 @@ def check_participant(person, event, side):
 ########################
 
 ### Connecting to the MySQL server
+db_user = input('Username: ')
+db_pass = getpass('Password: ')
 try:
     with connect(
         host = 'localhost',
         port = '3306',
-        user = input('Username: '),
-        password = getpass('Password: '),
+        user = db_user,
+        password = db_pass,
+    ) as connection:
+        with connection.cursor() as cursor:
+            print("Building DB if necessary")
+            results = cursor.execute(dbb.db_build_query, multi = True)
+            for x in results:
+                print(x)
+            connection.commit()      
+except Error as e:
+    print(e)
+try:
+    with connect(
+        host = 'localhost',
+        port = '3306',
+        user = db_user,
+        password = db_pass,
         database = 'mandalore',
     ) as connection:
         with connection.cursor() as cursor:
-            cursor.execute(dbb.db_build_query, multi = True)
 ### Locations
             for location in dc.locations_dict:
                 already_exists = check_location(location)
@@ -252,6 +274,9 @@ try:
                     except:
                         location = 'None'
                     try:
+                        print(dc.events_dict)
+                        print("DATE")
+                        print("*"*88)
                         date = dc.events_dict[event]['date=['][0]
                     except:
                         date = 'No date'
